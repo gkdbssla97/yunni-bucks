@@ -146,7 +146,7 @@ getCardRequests()/Responses() 메소드에서 FieldDescriptor 목록을 반환�
 1. 고민한 점: 아키텍처 설계 고민을 했다. 비즈니스 로직에 따른 테이블 구성 및 플로우 차트에 신경 썼다. 자바 OOP 패턴을 적용하는데에 초점을 두었다.
 2. 개선할 점: 쿼리 성능 개선 및 예외처리의 사각지대가 있다. 확장성을 위해 단일 책임 원칙을 좀 더 세분화 해야한다.
 3. 앞으로 계획:
- - 트래픽 부하 테스트
+ - 트래픽 부하 테스트 *(~~JMeter~~, nGrinder)*
  - 최단거리 배달 가게 알고리즘 구현
  - Pay 충전 및 결제 수단 추가
  - ~~동시성(DB Lock, Redisson), Redis Caching~~ *(yunni-bucks-traffic 개시)*
