@@ -140,7 +140,7 @@ proceedingJoinPoint.proceed()를 호출하여 원래의 메서드 실행을 계�
 <img width="500" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/01f7eace-f3ac-4ce6-81c2-a329387c6e45">
 
 #### Spring Rest Docs
-- 코드를 작성하면서 동시에 API 문서를 자동 생성한다. 생성된 명세서는 코드 기반으로 구현되어 정확하고, 최신 상태를 유지하며, 테스트 실패 시 생성되지 않는다.
+- 코드를 작성하면서 동시에 API 문서를 자동 생성한다. 생성된 명세서는 코드 기반으로 구현되어 정확하고, 테스트 실패 시 문서가 생성되지 않는다.
 - API의 사용 방법을 명확하게 설명해주어 협업뿐 아니라, 다른 팀이나 외부 개발자와의 협업에도 큰 도움이 된다고 판단하여 사용하였다.
 #### Spring Rest Docs (Card, Payments Domain)
 <img width="310" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/11f5dd23-20ba-4be5-840f-d95638fca8d1">
