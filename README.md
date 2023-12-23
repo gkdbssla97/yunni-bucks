@@ -77,6 +77,23 @@ Transitive Dependency가 발생했을 때 상위 레벨의 레이어가 하위 �
 
 
 ### Unit / Integration Test 비교
+- 단위테스트 구현 이유
+  - 테스트 시간 단축으로 문제점 발견 가능성이 높아지고 안정성이 향상
+  - 프로그램의 각 부분을 고립시켜서 정확하게 동작하는지 확인하는 것으로 어느 부분에서 에러가 발생하는지 재빠르게 확인이 가능하고, 디버깅 시간을 단축시킴으로써 개발의 생산성을 향상
+  - 테스트 간 결합도가 낮으므로 간단해진 통합
+- 프로덕션 코드의 repository, service 등 계층 간의 강한 의존성으로 인해 단위 테스트를 구현하는 것이 쉽지 않았다.
+  1. Mock 라이브러리를 이용해 가짜 객체를 주입받아 미리 정의된 값을 반환 -> OpenAPI와 같은 외부 시스템과 상호작용이 필요한 경우 Mock객체가 API를 모방 (외부 시스템은 외부 서비스의 가용성, 데이터 보안, 비용 등 외부 시스템이 내부 시스템, 즉 개발 중인 프로덕션 코드와는 독립적으로 동작하기 때문에, 외부 시스템에서 발생하는 문제가 테스트 결과에 영향을 줄 수 있다.)
+
+  2. 각 컴포넌트는 의존성 역전 원칙을 적용하여 추상화된 인터페이스에 의존하도록 구성(Fake Object를 만들어 실제 객체인 OrderRepository나 가짜 객체인 FakeOrderRepository를 인터페이스에 쉽게 교체할 수 있다. 이런 구조는 구체적인 구현에 의존하지 않고, 추상화에 의존함으로써 단위 테스트를 수행하는데 유리)
+
+#### Fake Object(Repository)
+1. atomicGeneratedId: AtomicLong을 사용하여 동시성 환경에서도 각 트랜잭션마다 고유한 ID 값을 생성
+2. data: CardPayment DB 대신 사용하는 ArrayList로 객체들을 저장In-Memory 방식으로 save 할 수 있다.
+<img width="351" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/f938fadb-2003-4768-8302-4b4d6a3338cc">
+
+3. 각 CRUD 메서드 구현, Stream & Lambda 식으로 작성하였고, Collections.toList() -> toList() Java17 기능 활용
+<img width="399" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/67dcef06-6391-4844-9b3b-2c6ddeb99d98">
+
 #### Service Result (Fake Object 사용)
 
 - *Card (기존 Test 대비 약 5배 단축)*   
@@ -87,15 +104,6 @@ Transitive Dependency가 발생했을 때 상위 레벨의 레이어가 하위 �
 <img width="364" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/d714ebeb-7c3a-482b-8c60-975b833077e6">
 <img width="394" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/68744969-81d8-444c-9957-66f48d71a0a6">
 
-- Fake Repository
-1. atomicGeneratedId: AtomicLong을 사용하여 고유한 ID 값을 생성하기 위한 변수
-2. data: CardPayment DB 대신 사용하는 ArrayList로 객체들을 저장하는 리스트
-이렇게 In-Memory 방식으로 save 할 수 있다.
-<img width="351" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/f938fadb-2003-4768-8302-4b4d6a3338cc">
-
-3. 각 CRUD 메서드 구현, Stream & Lambda 식으로 작성하였고, Collections.toList() -> toList() Java17 기능 활용
-<img width="399" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/67dcef06-6391-4844-9b3b-2c6ddeb99d98">
-
 #### Controller Result (Fake Object, Test Container 사용)
 - *Card (기존 Test 대비 약 5배 단축)*
 <img width="364" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/3cd88a42-239d-47cc-a206-b5b39c689220">
@@ -105,7 +113,7 @@ Transitive Dependency가 발생했을 때 상위 레벨의 레이어가 하위 �
 <img width="364" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/f5fb1dbc-3d29-4530-b4fe-fcb0d75bcfec">
 <img width="374" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/782e332b-19cd-4d1a-87c0-9ca6054fc2ed">
 
-- Test Container
+#### Test Container
   
 TestPayContainer 클래스에 FakePayRepository, FakeCardRepository 는실제 DB 대신 메모리 내에서 데이터를 저장하고 제공하는 가짜 객체이다.
 또한, FakeUuidHolder, FakeTossApiService, FakeOcrApiService 등은 각각 UUID 생성, Toss API 호출, OCR API 호출과 같은 외부 서비스와의 상호작용을 가짜로 대체하는 객체다. 
@@ -115,12 +123,14 @@ TestPayContainer 클래스에 FakePayRepository, FakeCardRepository 는실제 DB
 
 ### 구현기능 및 문서
 #### WebHook (Slack Notification)
-- API 요청 알림 및 에러 로그 알림
+- 특정 이벤트가 발생한 시점에서 즉시 알림을 제공하여 에러 추적이 용이하고 빠르게 대응 가능
+- 동시에 여러 API 요청이 들어올 경우, 각 요청을 처리하고 그 결과를 클라이언트에게 알리는 작업을 동기 방식으로 처리하면 시스템의 처리 능력을 제한하고 응답 시간을 증가시키는 결과를 가져올 수 있다고 판단
+#### API 요청 알림 및 에러 로그 알림
 <img width="276" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/c0b8dc39-354a-4984-916b-bf0293751ab7">
 <img width="289" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/99eb62cb-8e7c-48dc-bed8-388e4bbbe688">
 <img width="438" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/fd2265c2-ea12-42c2-9ae0-d42c7240c2f6">
 
-- 동기식 / 비동기식 속도 비교 (동기 대비 비동기 3 ~ 9배 단축)
+- 동기식 / 비동기식 속도 비교 (동기식 대비 비동기 최소 3배 단축)
 
 현재 요청 정보(HttpServletRequest)를 가져오기 위해 RequestContextHolder와 ServletRequestAttributes를 사용
 threadPoolExecutor에서 비동기적으로 sendSlackMessage() 메서드를 실행
@@ -130,8 +140,9 @@ proceedingJoinPoint.proceed()를 호출하여 원래의 메서드 실행을 계�
 <img width="500" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/01f7eace-f3ac-4ce6-81c2-a329387c6e45">
 
 #### Spring Rest Docs
-- Spring Rest Docs (Card, Payments Domain)
-
+- 코드를 작성하면서 동시에 API 문서를 자동 생성한다. 생성된 명세서는 코드 기반으로 구현되어 정확하고, 최신 상태를 유지하며, 테스트 실패 시 생성되지 않는다.
+- API의 사용 방법을 명확하게 설명해주어 협업뿐 아니라, 다른 팀이나 외부 개발자와의 협업에도 큰 도움이 된다고 판단하여 사용하였다.
+#### Spring Rest Docs (Card, Payments Domain)
 <img width="310" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/11f5dd23-20ba-4be5-840f-d95638fca8d1">
 <img width="279" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/de35a375-b086-4a64-a505-89105a735892">
 <img width="411" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/a0ff145a-c7d8-4907-92d4-e94f1a9ce285">
