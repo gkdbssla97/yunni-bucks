@@ -72,6 +72,12 @@
 
 ### 4.DIP
 Transitive Dependency가 발생했을 때 상위 레벨의 레이어가 하위 레벨의 레이어를 바로 의존하게 하지 않고 둘 사이에 존재하는 추상레벨을 통해 의존한다. 상위 레벨의 모듈은 하위 레벨의 모듈의 의존성을 벗어나 재사용 및 확장성을 보장받는다.
+> `interface`가 2개씩이나 필요한 이유?
+> 1. JpaRepository는 DB와 강결합 되어있는 JPA 코드를 인스턴스화 하는 것이 어렵다.
+> 2. 테스트 할때 Fake를 사용함으로써, Testability를 높일 수 있다.
+>     - Service Layer는 영속성 계층과의 의존관계가 느슨해진다.
+>     - H2 ➝ ‬MySQL로 DB를 교체해도 Service는 영향을 받지 않는다.
+> 3. 절차 지향적인 코드의 문제점인 동시 작업의 문제점을 개선할 수 있다.
 
 <img width="538" alt="image" src="https://github.com/gkdbssla97/yunni-bucks/assets/55674664/d7296b2a-496d-4487-b532-114976ecec9b">
 
